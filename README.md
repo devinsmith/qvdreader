@@ -1,2 +1,2 @@
 # qvdreader
-Utility to read Qlik QVD file format.
+A utility to read the Qlik QVD file format.
