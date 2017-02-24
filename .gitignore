@@ -34,3 +34,6 @@ qvdreader
 
 # gcc/g++ depends
 *.d
+
+# Qlik Data View files
+*.qvd
