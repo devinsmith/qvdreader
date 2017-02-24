@@ -2,7 +2,7 @@
 
 .PHONY: all clean
 
-SRCS = main.cpp
+SRCS = main.cpp QvdFile.cpp
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
 

@@ -14,26 +14,19 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <cstdio>
-#include <cstdlib>
+#ifndef __QVDFILE_H__
+#define __QVDFILE_H__
 
-#include <QvdFile.h>
+#include <string>
 
-int
-main(int argc, char *argv[])
-{
-  if (argc < 2) {
-    fprintf(stderr, "usage: %s qvdfile.qvd\n", argv[0]);
-    exit(1);
-  }
+struct QvdFile {
+  bool Load(const char *filename);
 
-  QvdFile qvd;
+  int _state;
+  int _prevState;
+  std::string _currentTag;
+  std::string _data;
+};
 
-  if (!qvd.Load(argv[1])) {
-    fprintf(stderr, "The file '%s' could not be loaded.\n", argv[1]);
-    exit(1);
-  }
-
-  return 0;
-}
+#endif /* __QVDFILE_H__ */
 
