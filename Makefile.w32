@@ -1,0 +1,39 @@
+# Makefile for qvdreader (compiled by Mingw64)
+
+.PHONY: all clean
+
+SRCS = main.cpp
+OBJS = $(SRCS:.cpp=.o)
+DEPS = $(SRCS:.cpp=.d)
+
+RM = del /f 2>NUL
+
+CXX? = g++
+
+# Dependencies
+# Expat
+EXPAT_CFLAGS = -Id:/libs/64/expat-2.2.0
+EXPAT_LIBS = -Ld:/libs/64/expat-2.2.0 -lexpatdll
+
+DEP_CFLAGS = $(EXPAT_CFLAGS)
+DEP_LIBS = $(EXPAT_LIBS)
+
+CFLAGS = -Wall -O2 -I.
+
+EXE = qvdreader.exe
+
+all: $(EXE)
+
+$(EXE): $(OBJS)
+	$(CXX) $(CFLAGS) -o $(EXE) $(OBJS) $(DEP_LIBS)
+
+.cpp.o:
+	$(CXX) $(CFLAGS) $(DEP_CFLAGS) -MMD -MP -MT $@ -o $@ -c $<
+
+clean:
+	$(RM) $(OBJS)
+	$(RM) $(DEPS)
+	$(RM) $(EXE)
+
+# Include automatically generated dependency files
+-include $(wildcard *.d)
