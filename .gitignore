@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+# Vim junk
+*.swp
+
+# gcc/g++ depends
+*.d
