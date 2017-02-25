@@ -1,4 +1,4 @@
-# Makefile for qvdreader (compiled by Mingw64)
+# Makefile for qvdreader (for Linux/Unix)
 
 .PHONY: all clean
 
