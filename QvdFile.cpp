@@ -21,6 +21,50 @@
 
 #include <expat.h>
 
+static void XMLCALL
+charDataProc(void *userData, const XML_Char *s, int len)
+{
+  QvdFile *file = static_cast<QvdFile *>(userData);
+
+  if (file != NULL) {
+    file->charData(s, len);
+  }
+
+}
+
+static void XMLCALL
+startElementProc(void *userData, const XML_Char *name, const XML_Char **attrs)
+{
+  QvdFile *file = static_cast<QvdFile *>(userData);
+
+  if (file != NULL) {
+    file->startElement(name, attrs);
+  }
+
+}
+
+static void XMLCALL
+endElementProc(void *userData, const XML_Char *name)
+{
+  QvdFile *file = static_cast<QvdFile *>(userData);
+
+  if (file != NULL) {
+    file->endElement(name);
+  }
+}
+
+static bool
+blankStr(const char *str, int len)
+{
+  int i = 0;
+  const char *p = str;
+  for (; i < len; p++, i++) {
+    if (*p != ' ' && *p != '\t' && *p != '\n' && *p != '\r')
+      return false;
+  }
+  return true;
+}
+
 enum FileTagState {
   Unknown = 0,
   QvdTableHeader = 1,
@@ -31,42 +75,72 @@ enum FileTagState {
   LineageInfo = 6
 };
 
-static void XMLCALL
-charDataProc(void *userData, const XML_Char *s, int len)
+void QvdFile::charData(const XML_Char *data, int len)
 {
-}
-
-static void XMLCALL
-startElementProc(void *userData, const char *name, const char **attrs)
-{
-  QvdFile *file = static_cast<QvdFile *>(userData);
-
-  file->_prevState = file->_state;
-  if (strcmp(name, "QvdTableHeader") == 0) {
-    file->_state = QvdTableHeader;
-  } else if (strcmp(name, "Fields") == 0) {
-    file->_state = Fields;
-  } else if (strcmp(name, "QvdFieldHeader") == 0) {
-    file->_state = QvdFieldHeader;
-  } else if (strcmp(name, "NumberFormat") == 0) {
-    file->_state = NumberFormat;
-  } else if (strcmp(name, "Lineage") == 0) {
-    file->_state = Lineage;
-  } else if (strcmp(name, "LineageInfo") == 0) {
-    file->_state = LineageInfo;
+  // Did expat give us all whitespace ?
+  if (blankStr(data, len)) {
+    return;
   }
 
-  file->_currentTag = name;
-  printf("S: %s\n", name);
+  switch (_state) {
+  case QvdTableHeader:
+    _hdr.ReadTag(_currentTag, data, len);
+    break;
+  case QvdFieldHeader:
+  case NumberFormat: {
+    QvdField field = _fields.back();
+    field.ReadTag(_currentTag, data, len);
+    break;
+  }
+  case LineageInfo: {
+    QvdLineageInfo lineage = _lineages.back();
+    lineage.ReadTag(_currentTag, data, len);
+    break;
+  }
+  default:
+    printf("Unhandled state: %d - %s\n", _state, _currentTag.c_str());
+    break;
+  }
 }
 
-static void XMLCALL
-endElementProc(void *userData, const char *name)
+void QvdFile::endElement(const XML_Char *name)
 {
-  QvdFile *file = static_cast<QvdFile *>(userData);
+  if (strcmp(name, "QvdTableHeader") == 0) {
+    _state = Unknown;
+  } else if (strcmp(name, "Fields") == 0) {
+    _state = QvdTableHeader;
+  } else if (strcmp(name, "QvdFieldHeader") == 0) {
+    _state = Fields;
+  } else if (strcmp(name, "NumberFormat") == 0) {
+    _state = QvdFieldHeader;
+  } else if (strcmp(name, "Lineage") == 0) {
+    _state = QvdTableHeader;
+  } else if (strcmp(name, "LineageInfo") == 0) {
+    _state = Lineage;
+  }
+}
 
-  file->_state = file->_prevState;
-  printf("E: %s\n", name);
+void QvdFile::startElement(const XML_Char *name, const XML_Char **attrs)
+{
+  if (strcmp(name, "QvdTableHeader") == 0) {
+    _state = QvdTableHeader;
+  } else if (strcmp(name, "Fields") == 0) {
+    _state = Fields;
+  } else if (strcmp(name, "QvdFieldHeader") == 0) {
+    _state = QvdFieldHeader;
+    QvdField field;
+    _fields.push_back(field);
+  } else if (strcmp(name, "NumberFormat") == 0) {
+    _state = NumberFormat;
+  } else if (strcmp(name, "Lineage") == 0) {
+    _state = Lineage;
+  } else if (strcmp(name, "LineageInfo") == 0) {
+    _state = LineageInfo;
+    QvdLineageInfo info;
+    _lineages.push_back(info);
+  }
+
+  _currentTag = name;
 }
 
 bool QvdFile::Load(const char *filename)
@@ -80,6 +154,7 @@ bool QvdFile::Load(const char *filename)
     return false;
   }
 
+  _state = _prevState = Unknown;
   XML_Parser parser = XML_ParserCreate(NULL);
 
   XML_SetUserData(parser, this);

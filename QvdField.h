@@ -14,35 +14,30 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __QVDFILE_H__
-#define __QVDFILE_H__
+#ifndef __QVD_FIELD_H__
+#define __QVD_FIELD_H__
 
 #include <string>
-#include <vector>
-#include <expat.h>
 
-#include <LineageInfo.h>
-#include <QvdField.h>
-#include <QvdTableHeader.h>
+struct QvdField {
+  void ReadTag(const std::string &currentTag, const char *data, int len);
 
-class QvdFile {
-public:
-  bool Load(const char *filename);
+  std::string FieldName;
+  unsigned int BitOffset;
+  unsigned int BitWidth;
+  unsigned int Bias;
 
-  void startElement(const XML_Char *name, const XML_Char **attrs);
-  void endElement(const XML_Char *name);
-  void charData(const XML_Char *s, int len);
+  // NumberFormat stuff
+  std::string Type;
+  unsigned int nDec; // Number of decimals?
+  unsigned int UseThou; // Use Thousands
+  std::string Dec; // Decimal format?
+  std::string Thou; // Thousand's format?
 
-private:
-  QvdTableHeader _hdr;
-  std::vector<QvdField> _fields;
-  std::vector<QvdLineageInfo> _lineages;
-
-  int _state;
-  int _prevState;
-  std::string _currentTag;
-  std::string _data;
+  unsigned int NoOfSymbols;
+  unsigned int Offset;
+  unsigned int Length;
 };
 
-#endif /* __QVDFILE_H__ */
+#endif /* __QVD_FIELD_H__ */
 

@@ -14,35 +14,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __QVDFILE_H__
-#define __QVDFILE_H__
-
-#include <string>
-#include <vector>
-#include <expat.h>
-
 #include <LineageInfo.h>
-#include <QvdField.h>
-#include <QvdTableHeader.h>
 
-class QvdFile {
-public:
-  bool Load(const char *filename);
-
-  void startElement(const XML_Char *name, const XML_Char **attrs);
-  void endElement(const XML_Char *name);
-  void charData(const XML_Char *s, int len);
-
-private:
-  QvdTableHeader _hdr;
-  std::vector<QvdField> _fields;
-  std::vector<QvdLineageInfo> _lineages;
-
-  int _state;
-  int _prevState;
-  std::string _currentTag;
-  std::string _data;
-};
-
-#endif /* __QVDFILE_H__ */
-
+void QvdLineageInfo::ReadTag(const std::string &currentTag, const char *data,
+  int len)
+{
+  if (currentTag.compare("Discriminator") == 0) {
+    Discriminator = std::string(data, len);
+  } else if (currentTag.compare("Statement") == 0) {
+    Statement = std::string(data, len);
+  } else {
+    printf("Unprocessed LineageInfo tag: %s\n", currentTag.c_str());
+  }
+}

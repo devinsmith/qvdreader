@@ -14,35 +14,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __QVDFILE_H__
-#define __QVDFILE_H__
+#ifndef __UTILS_CONVERSIONS_H__
+#define __UTILS_CONVERSIONS_H__
 
-#include <string>
-#include <vector>
-#include <expat.h>
+#include <cstddef>
 
-#include <LineageInfo.h>
-#include <QvdField.h>
-#include <QvdTableHeader.h>
+namespace utils {
 
-class QvdFile {
-public:
-  bool Load(const char *filename);
+unsigned int mem_to_uint(const char *buf, size_t len);
+int mem_to_int(const char *buf, size_t len);
 
-  void startElement(const XML_Char *name, const XML_Char **attrs);
-  void endElement(const XML_Char *name);
-  void charData(const XML_Char *s, int len);
+} // end namespace utils
 
-private:
-  QvdTableHeader _hdr;
-  std::vector<QvdField> _fields;
-  std::vector<QvdLineageInfo> _lineages;
 
-  int _state;
-  int _prevState;
-  std::string _currentTag;
-  std::string _data;
-};
-
-#endif /* __QVDFILE_H__ */
+#endif /* __UTILS_CONVERSIONS_H__ */
 

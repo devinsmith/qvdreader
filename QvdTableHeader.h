@@ -14,35 +14,25 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __QVDFILE_H__
-#define __QVDFILE_H__
+#ifndef __QVD_TABLEHEADER_H__
+#define __QVD_TABLEHEADER_H__
 
 #include <string>
-#include <vector>
-#include <expat.h>
 
-#include <LineageInfo.h>
-#include <QvdField.h>
-#include <QvdTableHeader.h>
+struct QvdTableHeader {
+  void ReadTag(const std::string &currentTag, const char *data, int len);
 
-class QvdFile {
-public:
-  bool Load(const char *filename);
+  std::string QvBuildNo;
+  std::string CreatorDoc;
+  std::string CreateUtcTime;
+  int SourceFileSize;
+  std::string TableName;
+  unsigned int RecordByteSize;
+  unsigned int NoOfRecords;
+  unsigned int Offset;
+  unsigned int Length;
 
-  void startElement(const XML_Char *name, const XML_Char **attrs);
-  void endElement(const XML_Char *name);
-  void charData(const XML_Char *s, int len);
-
-private:
-  QvdTableHeader _hdr;
-  std::vector<QvdField> _fields;
-  std::vector<QvdLineageInfo> _lineages;
-
-  int _state;
-  int _prevState;
-  std::string _currentTag;
-  std::string _data;
 };
 
-#endif /* __QVDFILE_H__ */
+#endif /* __QVD_TABLEHEADER_H__ */
 

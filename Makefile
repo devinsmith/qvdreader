@@ -2,7 +2,8 @@
 
 .PHONY: all clean
 
-SRCS = main.cpp QvdFile.cpp
+SRCS = LineageInfo.cpp main.cpp QvdField.cpp QvdFile.cpp QvdTableHeader.cpp \
+	utils/conversions.cpp
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
 

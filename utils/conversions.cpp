@@ -14,35 +14,36 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __QVDFILE_H__
-#define __QVDFILE_H__
+#include <utils/conversions.h>
 
-#include <string>
-#include <vector>
-#include <expat.h>
+namespace utils {
 
-#include <LineageInfo.h>
-#include <QvdField.h>
-#include <QvdTableHeader.h>
+unsigned int mem_to_uint(const char *buf, size_t len)
+{
+  unsigned int n = 0;
 
-class QvdFile {
-public:
-  bool Load(const char *filename);
+  while (len--) {
+    n = n * 10 + *buf++ - '0';
+  }
 
-  void startElement(const XML_Char *name, const XML_Char **attrs);
-  void endElement(const XML_Char *name);
-  void charData(const XML_Char *s, int len);
+  return n;
+}
 
-private:
-  QvdTableHeader _hdr;
-  std::vector<QvdField> _fields;
-  std::vector<QvdLineageInfo> _lineages;
+int mem_to_int(const char *buf, size_t len)
+{
+  bool neg = false;
+  int n = 0;
 
-  int _state;
-  int _prevState;
-  std::string _currentTag;
-  std::string _data;
-};
+  if (*buf == '-')
+    neg = true;
 
-#endif /* __QVDFILE_H__ */
+  while (len--) {
+    n = n * 10 + *buf++ - '0';
+  }
+
+  return neg ? -n : n;
+}
+
+} // end namespace utils
+
 
