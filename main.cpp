@@ -34,6 +34,8 @@ main(int argc, char *argv[])
     exit(1);
   }
 
+  printf("Total fields: %zu\n", qvd.NumFields());
+
   return 0;
 }
 

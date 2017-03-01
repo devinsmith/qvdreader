@@ -17,9 +17,10 @@
 #include <cstdio>
 #include <cstring>
 
-#include <QvdFile.h>
-
 #include <expat.h>
+
+#include <QvdFile.h>
+#include <utils/dumphex.h>
 
 static void XMLCALL
 charDataProc(void *userData, const XML_Char *s, int len)
@@ -145,16 +146,64 @@ void QvdFile::startElement(const XML_Char *name, const XML_Char **attrs)
 
 bool QvdFile::Load(const char *filename)
 {
-  char buf[BUFSIZ];
-  const char *endQvdTableHeader = "</QvdTableHeader>";
-  char *dataPtrStart;
-
-  FILE *fp = fopen(filename, "rb");
-  if (fp == NULL) {
+  _fp = fopen(filename, "rb");
+  if (_fp == NULL) {
     return false;
   }
 
   _state = _prevState = Unknown;
+  if (!parseXmlHeader()) {
+    return false;
+  }
+
+  if (_eof && _bufLen == 0) {
+    // XML header parsed but missing symbol table and data.
+    return false;
+  }
+
+  // The start of the dataPtr might have the ending \r and \n from
+  // the XML portion, if so skip past that.
+  char c;
+  while (_bufLen > 0) {
+    c = peekByte();
+    if (c == '\r' || c == '\n' || c == '\0') {
+      advanceBytes(1);
+      continue;
+    }
+    break;
+  }
+
+  if (_eof && _bufLen == 0) {
+    // XML header parsed but missing symbol table and data.
+    return false;
+  }
+
+  fprintf(stdout, "%zu bytes left\n", _bufLen);
+
+  // First 2 bytes seem to store a type:
+  // 00 01 - INT
+  // 00 04 - Text
+  // 00 05 - Dual INT
+
+
+  dump_hex(0, _dataPtrStart, _bufLen);
+
+  // Read rest of file.
+  while (!_eof) {
+    size_t len = readBytes();
+
+    printf("Read %zu bytes.\n", len);
+  }
+
+  fclose(_fp);
+
+  return true;
+}
+
+bool QvdFile::parseXmlHeader()
+{
+  const char *endQvdTableHeader = "</QvdTableHeader>";
+
   XML_Parser parser = XML_ParserCreate(NULL);
 
   XML_SetUserData(parser, this);
@@ -164,8 +213,8 @@ bool QvdFile::Load(const char *filename)
   // Read XML content of the file.
   int done;
   do {
-    size_t len = fread(buf, 1, sizeof(buf), fp);
-    done = len < sizeof(buf); // Did we reach end of file?
+    size_t len = readBytes();
+    done = len < sizeof(_buf); // Did we reach end of file?
 
     // Unfortunately the Qvd file format includes an XML based
     // header followed by raw binary data.
@@ -177,14 +226,20 @@ bool QvdFile::Load(const char *filename)
     // file.
 
     char *end;
-    if ((end = strstr(buf, endQvdTableHeader)) != NULL) {
+    if ((end = strstr(_buf, endQvdTableHeader)) != NULL) {
       end += strlen(endQvdTableHeader);
-      dataPtrStart = end;
-      len = end - buf;
+      // For the XML portion, the dataPtrStart marks the end of the XML
+      // and the start of raw data to be parsed later on.
+      //
+      // We treat this as an "End of File" situation for expat.
+      _dataPtrStart = end;
+      _bufLen = len;
+      len = end - _buf;
+      _bufLen -= len;
       done = 1;
     }
 
-    if (XML_Parse(parser, buf, len ,done) == XML_STATUS_ERROR) {
+    if (XML_Parse(parser, _buf, len, done) == XML_STATUS_ERROR) {
       fprintf(stderr, "%s at line %lu\n",
         XML_ErrorString(XML_GetErrorCode(parser)),
         XML_GetCurrentLineNumber(parser));
@@ -193,12 +248,69 @@ bool QvdFile::Load(const char *filename)
   } while (!done);
 
   XML_ParserFree(parser);
-
-  // Parse dataPtr portion.
-
-
-  fclose(fp);
-
   return true;
 }
 
+size_t QvdFile::readBytes()
+{
+  size_t len = fread(_buf, 1, sizeof(_buf), _fp);
+  if (len < sizeof(_buf)) {
+    _eof = true;
+  }
+  _dataPtrStart = _buf;
+  _bufLen = len;
+  return len;
+}
+
+char QvdFile::readByte()
+{
+  char c;
+
+  if (_bufLen == 0) {
+    if (!_eof) {
+      readBytes();
+    } else {
+      return 0; // throw an error.
+    }
+  }
+
+  _bufLen--;
+  c = *_dataPtrStart++;
+
+  return c;
+}
+
+char QvdFile::peekByte()
+{
+  char c;
+
+  if (_bufLen == 0) {
+    if (!_eof) {
+      readBytes();
+    } else {
+      return 0; // throw an error.
+    }
+  }
+
+  c = *_dataPtrStart;
+
+  return c;
+}
+
+void QvdFile::advanceBytes(size_t nBytes)
+{
+  if (_bufLen < nBytes) {
+    if (!_eof) {
+      readBytes();
+    } else {
+      return; // throw an error.
+    }
+  }
+
+  if (_bufLen < nBytes) {
+    return; // throw an error.
+  }
+
+  _bufLen -= nBytes;
+  _dataPtrStart += nBytes;
+}
