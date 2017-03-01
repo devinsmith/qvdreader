@@ -14,35 +14,17 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __QVD_FIELD_H__
-#define __QVD_FIELD_H__
+#ifndef __QVD_SYMBOL_H__
+#define __QVD_SYMBOL_H__
 
 #include <string>
-#include <vector>
 
-#include <QvdSymbol.h>
+struct QvdSymbol {
+  int Type;
 
-struct QvdField {
-  void ReadTag(const std::string &currentTag, const char *data, int len);
-
-  std::string FieldName;
-  unsigned int BitOffset;
-  unsigned int BitWidth;
-  unsigned int Bias;
-
-  // NumberFormat stuff
-  std::string Type;
-  unsigned int nDec; // Number of decimals?
-  unsigned int UseThou; // Use Thousands
-  std::string Dec; // Decimal format?
-  std::string Thou; // Thousand's format?
-
-  unsigned int NoOfSymbols;
-  unsigned int Offset;
-  unsigned int Length;
-
-  std::vector<QvdSymbol> Symbols;
+  std::string StringValue;
+  int IntValue;
 };
 
-#endif /* __QVD_FIELD_H__ */
+#endif /* __QVD_SYMBOL_H__ */
 

@@ -40,6 +40,10 @@ void QvdField::ReadTag(const std::string &currentTag, const char *data,
     Thou = std::string(data, len);
   } else if (currentTag.compare("NoOfSymbols") == 0) {
     NoOfSymbols = utils::mem_to_uint(data, len);
+
+    if (NoOfSymbols > 0) {
+      Symbols.reserve(NoOfSymbols);
+    }
   } else if (currentTag.compare("Offset") == 0) {
     Offset = utils::mem_to_uint(data, len);
   } else if (currentTag.compare("Length") == 0) {
