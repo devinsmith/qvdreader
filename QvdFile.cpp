@@ -89,13 +89,13 @@ void QvdFile::charData(const XML_Char *data, int len)
     break;
   case QvdFieldHeader:
   case NumberFormat: {
-    QvdField field = _fields.back();
-    field.ReadTag(_currentTag, data, len);
+    QvdField *field = &_fields.back();
+    field->ReadTag(_currentTag, data, len);
     break;
   }
   case LineageInfo: {
-    QvdLineageInfo lineage = _lineages.back();
-    lineage.ReadTag(_currentTag, data, len);
+    QvdLineageInfo *lineage = &_lineages.back();
+    lineage->ReadTag(_currentTag, data, len);
     break;
   }
   default:
