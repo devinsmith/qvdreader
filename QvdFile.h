@@ -40,9 +40,12 @@ public:
 
 private:
   bool parseXmlHeader();
+  bool parseSymbolAndData();
+
   size_t readBytes();
   char peekByte();
   char readByte();
+  int readInt32();
   void advanceBytes(size_t nBytes);
 
   QvdTableHeader _hdr;

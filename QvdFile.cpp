@@ -180,13 +180,15 @@ bool QvdFile::Load(const char *filename)
 
   fprintf(stdout, "%zu bytes left\n", _bufLen);
 
+  parseSymbolAndData();
+
   // First 2 bytes seem to store a type:
   // 00 01 - INT
   // 00 04 - Text
   // 00 05 - Dual INT
 
 
-  dump_hex(0, _dataPtrStart, _bufLen);
+  //dump_hex(0, _dataPtrStart, _bufLen);
 
   // Read rest of file.
   while (!_eof) {
@@ -197,6 +199,32 @@ bool QvdFile::Load(const char *filename)
 
   fclose(_fp);
 
+  return true;
+}
+
+bool QvdFile::parseSymbolAndData()
+{
+  for (std::vector<QvdField>::iterator it = _fields.begin();
+      it != _fields.end(); ++it) {
+    printf("Parsing field: %s, need to read %d symbols\n",
+      it->FieldName.c_str(), it->NoOfSymbols);
+
+    for (unsigned int i = 0; i < it->NoOfSymbols; i++) {
+      unsigned char typeByte = static_cast<unsigned char>(readByte());
+      QvdSymbol symbol;
+
+      switch (typeByte) {
+      case 0x01: // INT (4 bytes)
+        symbol.IntValue = readInt32();
+        break;
+//      case 0x02: // Date value (8 bytes)
+      default:
+        printf("Unknown byte: 0x%02x\n", typeByte);
+      }
+
+      it->Symbols.push_back(symbol);
+    }
+  }
   return true;
 }
 
@@ -276,6 +304,18 @@ char QvdFile::readByte()
 
   _bufLen--;
   c = *_dataPtrStart++;
+
+  return c;
+}
+
+int QvdFile::readInt32()
+{
+  int c;
+
+  c = readByte();
+  c += readByte() << 8;
+  c += readByte() << 16;
+  c += readByte() << 24;
 
   return c;
 }
