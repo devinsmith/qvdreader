@@ -21,33 +21,33 @@ void QvdField::ReadTag(const std::string &currentTag, const char *data,
   int len)
 {
   if (currentTag.compare("FieldName") == 0) {
-    FieldName = std::string(data, len);
+    FieldName.append(data, len);
   } else if (currentTag.compare("BitOffset") == 0) {
-    BitOffset = utils::mem_to_uint(data, len);
+    BitOffset += utils::mem_to_uint(data, len);
   } else if (currentTag.compare("BitWidth") == 0) {
-    BitWidth = utils::mem_to_uint(data, len);
+    BitWidth += utils::mem_to_uint(data, len);
   } else if (currentTag.compare("Bias") == 0) {
-    Bias = utils::mem_to_uint(data, len);
+    Bias += utils::mem_to_uint(data, len);
   } else if (currentTag.compare("Type") == 0) {
-    Type = std::string(data, len);
+    Type.append(data, len);
   } else if (currentTag.compare("nDec") == 0) {
-    nDec = utils::mem_to_uint(data, len);
+    nDec += utils::mem_to_uint(data, len);
   } else if (currentTag.compare("UseThou") == 0) {
-    UseThou = utils::mem_to_uint(data, len);
+    UseThou += utils::mem_to_uint(data, len);
   } else if (currentTag.compare("Dec") == 0) {
-    Dec = std::string(data, len);
+    Dec.append(data, len);
   } else if (currentTag.compare("Thou") == 0) {
-    Thou = std::string(data, len);
+    Thou.append(data, len);
   } else if (currentTag.compare("NoOfSymbols") == 0) {
-    NoOfSymbols = utils::mem_to_uint(data, len);
+    NoOfSymbols += utils::mem_to_uint(data, len);
 
     if (NoOfSymbols > 0) {
       Symbols.reserve(NoOfSymbols);
     }
   } else if (currentTag.compare("Offset") == 0) {
-    Offset = utils::mem_to_uint(data, len);
+    Offset += utils::mem_to_uint(data, len);
   } else if (currentTag.compare("Length") == 0) {
-    Length = utils::mem_to_uint(data, len);
+    Length += utils::mem_to_uint(data, len);
   } else {
     printf("Unprocessed QvdField tag: %s\n", currentTag.c_str());
   }

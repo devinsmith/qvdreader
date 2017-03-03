@@ -20,9 +20,9 @@ void QvdLineageInfo::ReadTag(const std::string &currentTag, const char *data,
   int len)
 {
   if (currentTag.compare("Discriminator") == 0) {
-    Discriminator = std::string(data, len);
+    Discriminator.append(data, len);
   } else if (currentTag.compare("Statement") == 0) {
-    Statement = std::string(data, len);
+    Statement.append(data, len);
   } else {
     printf("Unprocessed LineageInfo tag: %s\n", currentTag.c_str());
   }

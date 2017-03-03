@@ -23,6 +23,9 @@
 #include <QvdSymbol.h>
 
 struct QvdField {
+  QvdField() : BitOffset(0), BitWidth(0), Bias(0), nDec(0), UseThou(0), 
+    NoOfSymbols(0), Offset(0), Length(0) { }
+
   void ReadTag(const std::string &currentTag, const char *data, int len);
 
   std::string FieldName;
