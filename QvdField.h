@@ -31,7 +31,6 @@ struct QvdField {
   void ParseNumberFormat(const xmlNode *node);
   void ParseQvdFieldHeader(const xmlNode *node);
   void ParseXml(const xmlNode *node);
-  void ReadTag(const std::string &currentTag, const char *data, int len);
 
   std::string FieldName;
   unsigned int BitOffset;

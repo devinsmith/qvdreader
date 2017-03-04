@@ -30,7 +30,6 @@ struct QvdTableHeader {
     Offset(0), Length(0) { }
 
   void ParseXml(const xmlNode *node);
-  void ReadTag(const std::string &currentTag, const char *data, int len);
 
   std::string QvBuildNo;
   std::string CreatorDoc;

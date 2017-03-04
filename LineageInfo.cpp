@@ -18,18 +18,6 @@
 
 #include <LineageInfo.h>
 
-void QvdLineageInfo::ReadTag(const std::string &currentTag, const char *data,
-  int len)
-{
-  if (currentTag.compare("Discriminator") == 0) {
-    Discriminator.append(data, len);
-  } else if (currentTag.compare("Statement") == 0) {
-    Statement.append(data, len);
-  } else {
-    printf("Unprocessed LineageInfo tag: %s\n", currentTag.c_str());
-  }
-}
-
 void QvdLineageInfo::ParseLineageInfo(const xmlNode *node)
 {
   for (const xmlNode *child = node->children; child; child = child->next) {

@@ -19,42 +19,6 @@
 #include <QvdField.h>
 #include <utils/conversions.h>
 
-void QvdField::ReadTag(const std::string &currentTag, const char *data,
-  int len)
-{
-  if (currentTag.compare("FieldName") == 0) {
-    FieldName.append(data, len);
-  } else if (currentTag.compare("BitOffset") == 0) {
-    BitOffset += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("BitWidth") == 0) {
-    BitWidth += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("Bias") == 0) {
-    Bias += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("Type") == 0) {
-    Type.append(data, len);
-  } else if (currentTag.compare("nDec") == 0) {
-    nDec += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("UseThou") == 0) {
-    UseThou += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("Dec") == 0) {
-    Dec.append(data, len);
-  } else if (currentTag.compare("Thou") == 0) {
-    Thou.append(data, len);
-  } else if (currentTag.compare("NoOfSymbols") == 0) {
-    NoOfSymbols += utils::mem_to_uint(data, len);
-
-    if (NoOfSymbols > 0) {
-      Symbols.reserve(NoOfSymbols);
-    }
-  } else if (currentTag.compare("Offset") == 0) {
-    Offset += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("Length") == 0) {
-    Length += utils::mem_to_uint(data, len);
-  } else {
-    printf("Unprocessed QvdField tag: %s\n", currentTag.c_str());
-  }
-}
-
 void QvdField::ParseNumberFormat(const xmlNode *node)
 {
   for (const xmlNode *child = node->children; child; child = child->next) {

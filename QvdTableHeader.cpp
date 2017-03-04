@@ -19,32 +19,6 @@
 #include <QvdTableHeader.h>
 #include <utils/conversions.h>
 
-void QvdTableHeader::ReadTag(const std::string &currentTag, const char *data,
-  int len)
-{
-  if (currentTag.compare("QvBuildNo") == 0) {
-    QvBuildNo.append(data, len);
-  } else if (currentTag.compare("CreatorDoc") == 0) {
-    CreatorDoc.append(data, len);
-  } else if (currentTag.compare("CreateUtcTime") == 0) {
-    CreateUtcTime.append(data, len);
-  } else if (currentTag.compare("TableName") == 0) {
-    TableName.append(data, len);
-  } else if (currentTag.compare("SourceFileSize") == 0) {
-    SourceFileSize += utils::mem_to_int(data, len);
-  } else if (currentTag.compare("RecordByteSize") == 0) {
-    RecordByteSize += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("NoOfRecords") == 0) {
-    NoOfRecords += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("Offset") == 0) {
-    Offset += utils::mem_to_uint(data, len);
-  } else if (currentTag.compare("Length") == 0) {
-    Length += utils::mem_to_uint(data, len);
-  } else {
-    printf("Unprocessed QvdTableHeader tag: %s\n", currentTag.c_str());
-  }
-}
-
 void QvdTableHeader::ParseXml(const xmlNode *node)
 {
   for (const xmlNode *child = node->children; child; child = child->next) {
