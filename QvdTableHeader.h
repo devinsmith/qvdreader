@@ -18,11 +18,18 @@
 #define __QVD_TABLEHEADER_H__
 
 #include <string>
+#include <vector>
+
+#include <libxml/tree.h>
+
+#include <LineageInfo.h>
+#include <QvdField.h>
 
 struct QvdTableHeader {
   QvdTableHeader() : SourceFileSize(0), RecordByteSize(0), NoOfRecords(0),
     Offset(0), Length(0) { }
 
+  void ParseXml(const xmlNode *node);
   void ReadTag(const std::string &currentTag, const char *data, int len);
 
   std::string QvBuildNo;
@@ -35,6 +42,8 @@ struct QvdTableHeader {
   unsigned int Offset;
   unsigned int Length;
 
+  std::vector<QvdField> Fields;
+  std::vector<QvdLineageInfo> Lineages;
 };
 
 #endif /* __QVD_TABLEHEADER_H__ */

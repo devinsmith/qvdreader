@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <cstring>
+
 #include <LineageInfo.h>
 
 void QvdLineageInfo::ReadTag(const std::string &currentTag, const char *data,
@@ -25,5 +27,53 @@ void QvdLineageInfo::ReadTag(const std::string &currentTag, const char *data,
     Statement.append(data, len);
   } else {
     printf("Unprocessed LineageInfo tag: %s\n", currentTag.c_str());
+  }
+}
+
+void QvdLineageInfo::ParseLineageInfo(const xmlNode *node)
+{
+  for (const xmlNode *child = node->children; child; child = child->next) {
+    if (child->type == XML_ELEMENT_NODE) {
+      xmlChar *nodeContent = xmlNodeGetContent(child);
+      if (nodeContent == NULL)
+        continue;
+
+      if (strlen((char *)nodeContent) == 0) {
+        xmlFree(nodeContent);
+        continue;
+      }
+
+      if (strcmp((char *)child->name, "Discriminator") == 0) {
+        Discriminator = (char *)nodeContent;
+      } else if (strcmp((char *)child->name, "Statement") == 0) {
+        Statement = (char *)nodeContent;
+      } else {
+        printf("Unprocessed LineageInfo tag: %s\n", child->name);
+      }
+      xmlFree(nodeContent);
+    }
+  }
+}
+
+void QvdLineageInfo::ParseXml(const xmlNode *node)
+{
+  for (const xmlNode *child = node->children; child; child = child->next) {
+    if (child->type == XML_ELEMENT_NODE) {
+      xmlChar *nodeContent = xmlNodeGetContent(child);
+      if (nodeContent == NULL)
+        continue;
+
+      if (strlen((char *)nodeContent) == 0) {
+        xmlFree(nodeContent);
+        continue;
+      }
+
+      if (strcmp((char *)child->name, "LineageInfo") == 0) {
+        ParseLineageInfo(child);
+      } else {
+        printf("Unprocessed Lineage tag: %s\n", child->name);
+      }
+      xmlFree(nodeContent);
+    }
   }
 }

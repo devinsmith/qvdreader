@@ -3,7 +3,7 @@
 .PHONY: all clean
 
 SRCS = LineageInfo.cpp main.cpp QvdField.cpp QvdFile.cpp QvdTableHeader.cpp \
-	utils\\conversions.cpp utils\\dumphex.cpp
+	utils\conversions.cpp utils\dumphex.cpp
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
 
@@ -12,12 +12,12 @@ RM = del /f 2>NUL
 CXX? = g++
 
 # Dependencies
-# Expat
-EXPAT_CFLAGS = -Id:/libs/64/expat-2.2.0
-EXPAT_LIBS = -Ld:/libs/64/expat-2.2.0 -lexpatdll
+# LibXML2
+LIBXML2_CFLAGS = -Id:/libs/64/libxml2-2.9.4/include
+LIBXML2_LIBS = -Ld:/libs/64/libxml2-2.9.4 -llibxml2
 
-DEP_CFLAGS = $(EXPAT_CFLAGS)
-DEP_LIBS = $(EXPAT_LIBS)
+DEP_CFLAGS = $(EXPAT_CFLAGS) $(LIBXML2_CFLAGS)
+DEP_LIBS = $(EXPAT_LIBS) $(LIBXML2_LIBS)
 
 CFLAGS = -Wall -O2 -I.
 

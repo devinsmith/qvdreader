@@ -20,12 +20,17 @@
 #include <string>
 #include <vector>
 
+#include <libxml/tree.h>
+
 #include <QvdSymbol.h>
 
 struct QvdField {
   QvdField() : BitOffset(0), BitWidth(0), Bias(0), nDec(0), UseThou(0), 
     NoOfSymbols(0), Offset(0), Length(0) { }
 
+  void ParseNumberFormat(const xmlNode *node);
+  void ParseQvdFieldHeader(const xmlNode *node);
+  void ParseXml(const xmlNode *node);
   void ReadTag(const std::string &currentTag, const char *data, int len);
 
   std::string FieldName;

@@ -20,7 +20,6 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include <expat.h>
 
 #include <LineageInfo.h>
 #include <QvdField.h>
@@ -28,18 +27,14 @@
 
 class QvdFile {
 public:
-  QvdFile() : _state(0), _prevState(0), _lastFieldIndex(0), _fp(NULL),
+  QvdFile() : _lastFieldIndex(0), _fp(NULL),
     _dataPtrStart(NULL), _bufLen(0), _eof(false) {}
   bool Load(const char *filename);
 
-  void startElement(const XML_Char *name, const XML_Char **attrs);
-  void endElement(const XML_Char *name);
-  void charData(const XML_Char *s, int len);
-
-  size_t NumFields() { return _fields.size(); }
+  size_t NumFields() { return _hdr.Fields.size(); }
 
 private:
-  bool parseXmlHeader();
+  bool parseXmlHeader(const char *filename);
   bool parseSymbolAndData();
 
   size_t readBytes();
@@ -49,11 +44,7 @@ private:
   void advanceBytes(size_t nBytes);
 
   QvdTableHeader _hdr;
-  std::vector<QvdField> _fields;
-  std::vector<QvdLineageInfo> _lineages;
 
-  int _state;
-  int _prevState;
   unsigned int _lastFieldIndex;
   std::string _currentTag;
   std::string _data;

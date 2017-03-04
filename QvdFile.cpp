@@ -17,132 +17,11 @@
 #include <cstdio>
 #include <cstring>
 
-#include <expat.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 
 #include <QvdFile.h>
 #include <utils/dumphex.h>
-
-static void XMLCALL
-charDataProc(void *userData, const XML_Char *s, int len)
-{
-  QvdFile *file = static_cast<QvdFile *>(userData);
-
-  if (file != NULL) {
-    file->charData(s, len);
-  }
-
-}
-
-static void XMLCALL
-startElementProc(void *userData, const XML_Char *name, const XML_Char **attrs)
-{
-  QvdFile *file = static_cast<QvdFile *>(userData);
-
-  if (file != NULL) {
-    file->startElement(name, attrs);
-  }
-
-}
-
-static void XMLCALL
-endElementProc(void *userData, const XML_Char *name)
-{
-  QvdFile *file = static_cast<QvdFile *>(userData);
-
-  if (file != NULL) {
-    file->endElement(name);
-  }
-}
-
-static bool
-blankStr(const char *str, int len)
-{
-  int i = 0;
-  const char *p = str;
-  for (; i < len; p++, i++) {
-    if (*p != ' ' && *p != '\t' && *p != '\n' && *p != '\r')
-      return false;
-  }
-  return true;
-}
-
-enum FileTagState {
-  Unknown = 0,
-  QvdTableHeader = 1,
-  Fields = 2,
-  QvdFieldHeader = 3,
-  NumberFormat = 4,
-  Lineage = 5,
-  LineageInfo = 6
-};
-
-void QvdFile::charData(const XML_Char *data, int len)
-{
-  // Did expat give us all whitespace ?
-  if (blankStr(data, len)) {
-    return;
-  }
-
-  switch (_state) {
-  case QvdTableHeader:
-    _hdr.ReadTag(_currentTag, data, len);
-    break;
-  case QvdFieldHeader:
-  case NumberFormat: {
-    QvdField *field = &_fields.back();
-    field->ReadTag(_currentTag, data, len);
-    break;
-  }
-  case LineageInfo: {
-    QvdLineageInfo *lineage = &_lineages.back();
-    lineage->ReadTag(_currentTag, data, len);
-    break;
-  }
-  default:
-    printf("Unhandled state: %d - %s\n", _state, _currentTag.c_str());
-    break;
-  }
-}
-
-void QvdFile::endElement(const XML_Char *name)
-{
-  if (strcmp(name, "QvdTableHeader") == 0) {
-    _state = Unknown;
-  } else if (strcmp(name, "Fields") == 0) {
-    _state = QvdTableHeader;
-  } else if (strcmp(name, "QvdFieldHeader") == 0) {
-    _state = Fields;
-  } else if (strcmp(name, "NumberFormat") == 0) {
-    _state = QvdFieldHeader;
-  } else if (strcmp(name, "Lineage") == 0) {
-    _state = QvdTableHeader;
-  } else if (strcmp(name, "LineageInfo") == 0) {
-    _state = Lineage;
-  }
-}
-
-void QvdFile::startElement(const XML_Char *name, const XML_Char **attrs)
-{
-  if (strcmp(name, "QvdTableHeader") == 0) {
-    _state = QvdTableHeader;
-  } else if (strcmp(name, "Fields") == 0) {
-    _state = Fields;
-  } else if (strcmp(name, "QvdFieldHeader") == 0) {
-    _state = QvdFieldHeader;
-    QvdField field;
-    _fields.push_back(field);
-  } else if (strcmp(name, "NumberFormat") == 0) {
-    _state = NumberFormat;
-  } else if (strcmp(name, "Lineage") == 0) {
-    _state = Lineage;
-  } else if (strcmp(name, "LineageInfo") == 0) {
-    _state = LineageInfo;
-    QvdLineageInfo info;
-    _lineages.push_back(info);
-  }
-
-  _currentTag = name;
-}
 
 bool QvdFile::Load(const char *filename)
 {
@@ -151,8 +30,7 @@ bool QvdFile::Load(const char *filename)
     return false;
   }
 
-  _state = _prevState = Unknown;
-  if (!parseXmlHeader()) {
+  if (!parseXmlHeader(filename)) {
     return false;
   }
 
@@ -204,8 +82,8 @@ bool QvdFile::Load(const char *filename)
 
 bool QvdFile::parseSymbolAndData()
 {
-  for (std::vector<QvdField>::iterator it = _fields.begin();
-      it != _fields.end(); ++it) {
+  for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
+      it != _hdr.Fields.end(); ++it) {
     printf("Parsing field: %s, need to read %d symbols\n",
       it->FieldName.c_str(), it->NoOfSymbols);
 
@@ -228,15 +106,12 @@ bool QvdFile::parseSymbolAndData()
   return true;
 }
 
-bool QvdFile::parseXmlHeader()
+bool QvdFile::parseXmlHeader(const char *filename)
 {
   const char *endQvdTableHeader = "</QvdTableHeader>";
+  xmlParserCtxtPtr ctxt;
 
-  XML_Parser parser = XML_ParserCreate(NULL);
-
-  XML_SetUserData(parser, this);
-  XML_SetElementHandler(parser, startElementProc, endElementProc);
-  XML_SetCharacterDataHandler(parser, charDataProc);
+  ctxt = xmlCreatePushParserCtxt(NULL, NULL, NULL, 0, filename);
 
   // Read XML content of the file.
   int done;
@@ -267,15 +142,34 @@ bool QvdFile::parseXmlHeader()
       done = 1;
     }
 
-    if (XML_Parse(parser, _buf, len, done) == XML_STATUS_ERROR) {
+    if (xmlParseChunk(ctxt, _buf, len, done) != 0) {
+      fprintf(stderr, "An error occurred parsing the XML\n");
+      return false;
+#if 0
       fprintf(stderr, "%s at line %lu\n",
         XML_ErrorString(XML_GetErrorCode(parser)),
         XML_GetCurrentLineNumber(parser));
-      return false;
+#endif
     }
   } while (!done);
 
-  XML_ParserFree(parser);
+  if (ctxt->myDoc == NULL || !ctxt->wellFormed) {
+    // XML header is not well formed.
+    return false;
+  }
+
+  xmlDoc *doc = ctxt->myDoc; /* the resulting document tree */
+  xmlNode *root_element = xmlDocGetRootElement(doc);
+
+  for (xmlNode *node = root_element; node; node = node->next) {
+    if (node->type == XML_ELEMENT_NODE &&
+        strcmp((char *)node->name, "QvdTableHeader") == 0) {
+      _hdr.ParseXml(node);
+    }
+  }
+
+  xmlFreeDoc(doc);
+  xmlFreeParserCtxt(ctxt);
   return true;
 }
 

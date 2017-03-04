@@ -19,7 +19,11 @@
 
 #include <string>
 
+#include <libxml/tree.h>
+
 struct QvdLineageInfo {
+  void ParseXml(const xmlNode *node);
+  void ParseLineageInfo(const xmlNode *node);
   void ReadTag(const std::string &currentTag, const char *data, int len);
 
   std::string Discriminator;

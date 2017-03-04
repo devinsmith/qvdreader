@@ -14,6 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <cstring>
+
 #include <QvdTableHeader.h>
 #include <utils/conversions.h>
 
@@ -40,5 +42,55 @@ void QvdTableHeader::ReadTag(const std::string &currentTag, const char *data,
     Length += utils::mem_to_uint(data, len);
   } else {
     printf("Unprocessed QvdTableHeader tag: %s\n", currentTag.c_str());
+  }
+}
+
+void QvdTableHeader::ParseXml(const xmlNode *node)
+{
+  for (const xmlNode *child = node->children; child; child = child->next) {
+    if (child->type == XML_ELEMENT_NODE) {
+      xmlChar *nodeContent = xmlNodeGetContent(child);
+      if (nodeContent == NULL)
+        continue;
+
+      if (strlen((char *)nodeContent) == 0) {
+        xmlFree(nodeContent);
+        continue;
+      }
+
+      if (strcmp((char *)child->name, "QvBuildNo") == 0) {
+        QvBuildNo = (char *)nodeContent;
+      } else if (strcmp((char *)child->name, "CreatorDoc") == 0) {
+        CreatorDoc = (char *)nodeContent;
+      } else if (strcmp((char *)child->name, "CreateUtcTime") == 0) {
+        CreateUtcTime = (char *)nodeContent;
+      } else if (strcmp((char *)child->name, "TableName") == 0) {
+        TableName = (char *)nodeContent;
+      } else if (strcmp((char *)child->name, "SourceFileSize") == 0) {
+        SourceFileSize = atoi((char *)nodeContent);
+      } else if (strcmp((char *)child->name, "RecordByteSize") == 0) {
+        RecordByteSize = atoi((char *)nodeContent);
+      } else if (strcmp((char *)child->name, "NoOfRecords") == 0) {
+        NoOfRecords = atoi((char *)nodeContent);
+      } else if (strcmp((char *)child->name, "Offset") == 0) {
+        Offset = atoi((char *)nodeContent);
+      } else if (strcmp((char *)child->name, "Length") == 0) {
+        Length = atoi((char *)nodeContent);
+      } else if (strcmp((char *)child->name, "Lineage") == 0) {
+        QvdLineageInfo lin;
+        lin.ParseXml(child);
+
+        Lineages.push_back(lin);
+      } else if (strcmp((char *)child->name, "Fields") == 0) {
+        QvdField field;
+        field.ParseXml(child);
+
+        Fields.push_back(field);
+      } else {
+        printf("Unprocessed QvdTableHeader tag: %s\n", child->name);
+      }
+
+      xmlFree(nodeContent);
+    }
   }
 }

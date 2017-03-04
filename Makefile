@@ -12,8 +12,8 @@ RM = rm -f
 CXX? = g++
 
 # Dependencies
-DEP_CFLAGS = $(shell pkg-config expat --cflags)
-DEP_LIBS = $(shell pkg-config expat --libs)
+DEP_CFLAGS = $(shell pkg-config libxml-2.0 --cflags)
+DEP_LIBS = $(shell pkg-config libxml-2.0 --libs)
 
 CFLAGS = -Wall -O2 -I.
 
