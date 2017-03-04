@@ -70,6 +70,10 @@ void QvdField::ParseNumberFormat(const xmlNode *node)
 
       if (strcmp((char *)child->name, "Type") == 0) {
         Type = (char *)nodeContent;
+      } else if (strcmp((char *)child->name, "Dec") == 0) {
+        Dec = (char *)nodeContent;
+      } else if (strcmp((char *)child->name, "Thou") == 0) {
+        Thou = (char *)nodeContent;
       } else if (strcmp((char *)child->name, "nDec") == 0) {
         nDec = atoi((char *)nodeContent);
       } else if (strcmp((char *)child->name, "UseThou") == 0) {
