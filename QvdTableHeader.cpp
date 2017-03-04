@@ -19,6 +19,58 @@
 #include <QvdTableHeader.h>
 #include <utils/conversions.h>
 
+void QvdTableHeader::ParseFields(const xmlNode *node)
+{
+  for (const xmlNode *child = node->children; child; child = child->next) {
+    if (child->type == XML_ELEMENT_NODE) {
+      xmlChar *nodeContent = xmlNodeGetContent(child);
+      if (nodeContent == NULL)
+        continue;
+
+      if (strlen((char *)nodeContent) == 0) {
+        xmlFree(nodeContent);
+        continue;
+      }
+
+      if (strcmp((char *)child->name, "QvdFieldHeader") == 0) {
+        QvdField field;
+        field.ParseXml(child);
+
+        Fields.push_back(field);
+      } else {
+        printf("Unprocessed Fields tag: %s\n", child->name);
+      }
+      xmlFree(nodeContent);
+    }
+  }
+}
+
+void QvdTableHeader::ParseLineage(const xmlNode *node)
+{
+  for (const xmlNode *child = node->children; child; child = child->next) {
+    if (child->type == XML_ELEMENT_NODE) {
+      xmlChar *nodeContent = xmlNodeGetContent(child);
+      if (nodeContent == NULL)
+        continue;
+
+      if (strlen((char *)nodeContent) == 0) {
+        xmlFree(nodeContent);
+        continue;
+      }
+
+      if (strcmp((char *)child->name, "LineageInfo") == 0) {
+        QvdLineageInfo lin;
+        lin.ParseXml(child);
+
+        Lineages.push_back(lin);
+      } else {
+        printf("Unprocessed Lineage tag: %s\n", child->name);
+      }
+      xmlFree(nodeContent);
+    }
+  }
+}
+
 void QvdTableHeader::ParseXml(const xmlNode *node)
 {
   for (const xmlNode *child = node->children; child; child = child->next) {
@@ -51,15 +103,9 @@ void QvdTableHeader::ParseXml(const xmlNode *node)
       } else if (strcmp((char *)child->name, "Length") == 0) {
         Length = atoi((char *)nodeContent);
       } else if (strcmp((char *)child->name, "Lineage") == 0) {
-        QvdLineageInfo lin;
-        lin.ParseXml(child);
-
-        Lineages.push_back(lin);
+        ParseLineage(child);
       } else if (strcmp((char *)child->name, "Fields") == 0) {
-        QvdField field;
-        field.ParseXml(child);
-
-        Fields.push_back(field);
+        ParseFields(child);
       } else {
         printf("Unprocessed QvdTableHeader tag: %s\n", child->name);
       }

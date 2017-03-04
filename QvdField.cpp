@@ -50,7 +50,7 @@ void QvdField::ParseNumberFormat(const xmlNode *node)
   }
 }
 
-void QvdField::ParseQvdFieldHeader(const xmlNode *node)
+void QvdField::ParseXml(const xmlNode *node)
 {
   for (const xmlNode *child = node->children; child; child = child->next) {
     if (child->type == XML_ELEMENT_NODE) {
@@ -91,25 +91,3 @@ void QvdField::ParseQvdFieldHeader(const xmlNode *node)
   }
 }
 
-void QvdField::ParseXml(const xmlNode *node)
-{
-  for (const xmlNode *child = node->children; child; child = child->next) {
-    if (child->type == XML_ELEMENT_NODE) {
-      xmlChar *nodeContent = xmlNodeGetContent(child);
-      if (nodeContent == NULL)
-        continue;
-
-      if (strlen((char *)nodeContent) == 0) {
-        xmlFree(nodeContent);
-        continue;
-      }
-
-      if (strcmp((char *)child->name, "QvdFieldHeader") == 0) {
-        ParseQvdFieldHeader(child);
-      } else {
-        printf("Unprocessed Fields tag: %s\n", child->name);
-      }
-      xmlFree(nodeContent);
-    }
-  }
-}

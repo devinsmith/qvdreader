@@ -29,7 +29,6 @@ struct QvdField {
     NoOfSymbols(0), Offset(0), Length(0) { }
 
   void ParseNumberFormat(const xmlNode *node);
-  void ParseQvdFieldHeader(const xmlNode *node);
   void ParseXml(const xmlNode *node);
 
   std::string FieldName;

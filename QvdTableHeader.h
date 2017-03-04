@@ -29,6 +29,8 @@ struct QvdTableHeader {
   QvdTableHeader() : SourceFileSize(0), RecordByteSize(0), NoOfRecords(0),
     Offset(0), Length(0) { }
 
+  void ParseFields(const xmlNode *node);
+  void ParseLineage(const xmlNode *node);
   void ParseXml(const xmlNode *node);
 
   std::string QvBuildNo;

@@ -23,7 +23,6 @@
 
 struct QvdLineageInfo {
   void ParseXml(const xmlNode *node);
-  void ParseLineageInfo(const xmlNode *node);
 
   std::string Discriminator;
   std::string Statement;
