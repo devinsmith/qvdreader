@@ -90,12 +90,29 @@ bool QvdFile::parseSymbolAndData()
     for (unsigned int i = 0; i < it->NoOfSymbols; i++) {
       unsigned char typeByte = static_cast<unsigned char>(readByte());
       QvdSymbol symbol;
+      char stringByte;
 
       switch (typeByte) {
       case 0x01: // INT (4 bytes)
         symbol.IntValue = readInt32();
         break;
-//      case 0x02: // Date value (8 bytes)
+      case 0x02: // Date (8 bytes);
+        dump_hex(0, _dataPtrStart, 8);
+        readByte();
+        readByte();
+        readByte();
+        readByte();
+        readByte();
+        readByte();
+        readByte();
+        readByte();
+        break;
+      case 0x04: // String value (0 terminated)
+        while ((stringByte = readByte()) != 0) {
+          symbol.StringValue += stringByte;
+        }
+        break;
+
       default:
         printf("Unknown byte: 0x%02x\n", typeByte);
       }
@@ -202,6 +219,9 @@ char QvdFile::readByte()
   return c;
 }
 
+//
+// Reads 32 bits in Little Endian format.
+//
 int QvdFile::readInt32()
 {
   int c;
