@@ -24,6 +24,7 @@ struct QvdSymbol {
 
   std::string StringValue;
   int IntValue;
+  double DoubleValue;
 };
 
 #endif /* __QVD_SYMBOL_H__ */

@@ -84,41 +84,66 @@ bool QvdFile::parseSymbolAndData()
 {
   for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
       it != _hdr.Fields.end(); ++it) {
-    printf("Parsing field: %s, need to read %d symbols\n",
+    printf("Parsing symbols for %s, need to read %d symbols\n",
       it->FieldName.c_str(), it->NoOfSymbols);
 
     for (unsigned int i = 0; i < it->NoOfSymbols; i++) {
       unsigned char typeByte = static_cast<unsigned char>(readByte());
       QvdSymbol symbol;
+
       char stringByte;
+      double d;
 
       switch (typeByte) {
       case 0x01: // INT (4 bytes)
         symbol.IntValue = readInt32();
         break;
-      case 0x02: // Date (8 bytes);
-        dump_hex(0, _dataPtrStart, 8);
-        readByte();
-        readByte();
-        readByte();
-        readByte();
-        readByte();
-        readByte();
-        readByte();
-        readByte();
+      case 0x02: // NUMERIC (double 8 bytes)
+
+        // XXX: Not endian safe.
+        memcpy(&d, _dataPtrStart, 8);
+        for (int i = 0; i < 8; i++) {
+          readByte();
+        }
+        symbol.DoubleValue = d;
         break;
       case 0x04: // String value (0 terminated)
         while ((stringByte = readByte()) != 0) {
           symbol.StringValue += stringByte;
         }
         break;
+      case 0x05: // Dual (INT format) 4 bytes, followed by string format.
+        symbol.IntValue = readInt32();
+        while ((stringByte = readByte()) != 0) {
+          symbol.StringValue += stringByte;
+        }
+        break;
+      case 0x06: // DUAL (Double format) 8 bytes followed by string format.
+        // XXX: Not endian safe.
+        memcpy(&d, _dataPtrStart, 8);
+        for (int i = 0; i < 8; i++) {
+          readByte();
+        }
+        symbol.DoubleValue = d;
 
+        // Read string.
+        while ((stringByte = readByte()) != 0) {
+          symbol.StringValue += stringByte;
+        }
+        break;
       default:
         printf("Unknown byte: 0x%02x\n", typeByte);
       }
 
       it->Symbols.push_back(symbol);
     }
+  }
+
+  for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
+      it != _hdr.Fields.end(); ++it) {
+    printf("Parsing data for %s, need to read %d bits symbols\n",
+      it->FieldName.c_str(), it->BitWidth);
+
   }
   return true;
 }
