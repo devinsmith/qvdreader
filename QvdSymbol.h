@@ -20,6 +20,8 @@
 #include <string>
 
 struct QvdSymbol {
+  QvdSymbol() : Type(0), IntValue(0), DoubleValue(0) { }
+
   int Type;
 
   std::string StringValue;
