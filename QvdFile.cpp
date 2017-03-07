@@ -192,7 +192,14 @@ bool QvdFile::parseSymbolAndData()
         totalBits += it->BitWidth;
 
         int idx = get_bits_index(it->BitWidth);
+        if (it->Bias != 0)
+          idx += it->Bias;
         printf("> Index = %d\n", idx);
+        if (idx == -2) {
+          printf("NULL\n");
+          continue;
+        }
+
 
         if (it->Symbols.size() == 0) {
           printf("NULL\n");
