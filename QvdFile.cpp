@@ -166,20 +166,7 @@ bool QvdFile::parseSymbolAndData()
       return 0; // throw an error.
     }
   }
-  printf("Bits left = %zu\n", _bufLen * 8);
   dump_hex(0, _dataPtrStart, _bufLen);
-  _bitsLeft = _bufLen * 8;
-  int totalBits = 0;
-
-  _bitBuffer = 0;
-  _bitBufferSz = 0;
-
-//  struct QvdField f = _hdr.Fields[0];
-//  struct QvdSymbol s = f.Symbols[0];
-//  printf("%d\n", s.IntValue);
-//  s = f.Symbols[1];
-//  printf("%d\n", s.IntValue);
-  //dump_hex(0, _dataPtrStart, _bufLen);
 
   for (rowNumber = 0; rowNumber < _hdr.NoOfRecords; rowNumber++) {
     printf("==== ROW: %d ====\n", (int)rowNumber);
@@ -189,7 +176,6 @@ bool QvdFile::parseSymbolAndData()
       if (it->BitWidth > 0) {
         printf("Parsing data for %s (%d), need to read %d bits for this field\n",
           it->FieldName.c_str(), it->BitOffset, it->BitWidth);
-        totalBits += it->BitWidth;
 
         int idx = get_bits_index(it->BitWidth);
         if (it->Bias != 0)
@@ -337,7 +323,7 @@ int QvdFile::get_bits_index(size_t nBits)
 {
   int i = 0;
 
-  if (_bufLen == 0 && _bitsLeft == 0) {
+  if (_bufLen == 0) {
     if (!_eof) {
       readBytes();
       printf("Need to reload\n");
@@ -347,9 +333,9 @@ int QvdFile::get_bits_index(size_t nBits)
   }
 
   while (nBits > _bitBufferSz) {
-    printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz);
+//    printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz);
     unsigned int byte = (unsigned char)*_dataPtrStart++;
-    printf("Read byte 0x%02x\n", byte);
+//    printf("Read byte 0x%02x\n", byte);
     byte = byte << _bitBufferSz;
     _bitBufferSz += 8;
     _bitBuffer += byte;
@@ -357,7 +343,7 @@ int QvdFile::get_bits_index(size_t nBits)
     _bufLen--;
   }
 
-  printf("%d\n", _bitBufferSz);
+//  printf("%d\n", _bitBufferSz);
   int mask = ((1 << nBits) - 1);
   i = (_bitBuffer) & mask;
   _bitBuffer = _bitBuffer >> nBits;

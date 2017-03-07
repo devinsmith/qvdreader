@@ -28,7 +28,8 @@
 class QvdFile {
 public:
   QvdFile() : _lastFieldIndex(0), _fp(NULL),
-    _dataPtrStart(NULL), _bufLen(0), _eof(false), _bitsLeft(0) {}
+    _dataPtrStart(NULL), _bufLen(0), _eof(false), _bitBuffer(0),
+    _bitBufferSz(0) {}
   bool Load(const char *filename);
 
   size_t NumFields() { return _hdr.Fields.size(); }
@@ -56,7 +57,6 @@ private:
   char *_dataPtrStart;
   size_t _bufLen;
   bool _eof;
-  size_t _bitsLeft; // Bits left in our buffer.
   unsigned int _bitBuffer; // 32 bit bit buffer
   unsigned int _bitBufferSz;
 };
