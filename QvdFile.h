@@ -28,7 +28,7 @@
 class QvdFile {
 public:
   QvdFile() : _lastFieldIndex(0), _fp(NULL),
-    _dataPtrStart(NULL), _bufLen(0), _eof(false) {}
+    _dataPtrStart(NULL), _bufLen(0), _eof(false), _bitsLeft(0) {}
   bool Load(const char *filename);
 
   size_t NumFields() { return _hdr.Fields.size(); }
@@ -41,6 +41,7 @@ private:
   char peekByte();
   char readByte();
   int readInt32();
+  int get_bits_index(size_t nBits);
   void advanceBytes(size_t nBytes);
 
   QvdTableHeader _hdr;
@@ -55,6 +56,9 @@ private:
   char *_dataPtrStart;
   size_t _bufLen;
   bool _eof;
+  size_t _bitsLeft; // Bits left in our buffer.
+  unsigned int _bitBuffer; // 32 bit bit buffer
+  unsigned int _bitBufferSz;
 };
 
 #endif /* __QVDFILE_H__ */

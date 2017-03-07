@@ -17,11 +17,21 @@
 #include <cstdio>
 #include <cstring>
 
+#include <algorithm>
+
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
 #include <QvdFile.h>
 #include <utils/dumphex.h>
+
+struct less_than_bitOffset {
+  inline bool operator() (const QvdField &field1, const QvdField &field2)
+  {
+    return field1.BitOffset < field2.BitOffset;
+  }
+};
+
 
 bool QvdFile::Load(const char *filename)
 {
@@ -94,12 +104,12 @@ bool QvdFile::parseSymbolAndData()
       char stringByte;
       double d;
 
+      symbol.Type = typeByte;
       switch (typeByte) {
       case 0x01: // INT (4 bytes)
         symbol.IntValue = readInt32();
         break;
       case 0x02: // NUMERIC (double 8 bytes)
-
         // XXX: Not endian safe.
         memcpy(&d, _dataPtrStart, 8);
         for (int i = 0; i < 8; i++) {
@@ -139,12 +149,84 @@ bool QvdFile::parseSymbolAndData()
     }
   }
 
-  for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
-      it != _hdr.Fields.end(); ++it) {
-    printf("Parsing data for %s, need to read %d bits symbols\n",
-      it->FieldName.c_str(), it->BitWidth);
+  // Sort fields by BitOffset
+  std::sort(_hdr.Fields.begin(), _hdr.Fields.end(), less_than_bitOffset());
 
+  printf("Total number of rows: %d\n", _hdr.NoOfRecords);
+  size_t rowNumber = 0;
+
+  printf("[\n");
+
+  printf("  {\n");
+
+  if (_bufLen == 0) {
+    if (!_eof) {
+      readBytes();
+    } else {
+      return 0; // throw an error.
+    }
   }
+  printf("Bits left = %zu\n", _bufLen * 8);
+  dump_hex(0, _dataPtrStart, _bufLen);
+  _bitsLeft = _bufLen * 8;
+  int totalBits = 0;
+
+  _bitBuffer = 0;
+  _bitBufferSz = 0;
+
+//  struct QvdField f = _hdr.Fields[0];
+//  struct QvdSymbol s = f.Symbols[0];
+//  printf("%d\n", s.IntValue);
+//  s = f.Symbols[1];
+//  printf("%d\n", s.IntValue);
+  //dump_hex(0, _dataPtrStart, _bufLen);
+
+  for (rowNumber = 0; rowNumber < _hdr.NoOfRecords; rowNumber++) {
+    printf("==== ROW: %d ====\n", (int)rowNumber);
+    // Read first row now;
+    for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
+        it != _hdr.Fields.end(); ++it) {
+      if (it->BitWidth > 0) {
+        printf("Parsing data for %s (%d), need to read %d bits for this field\n",
+          it->FieldName.c_str(), it->BitOffset, it->BitWidth);
+        totalBits += it->BitWidth;
+
+        int idx = get_bits_index(it->BitWidth);
+        printf("> Index = %d\n", idx);
+
+        if (it->Symbols.size() == 0) {
+          printf("NULL\n");
+          continue;
+        }
+
+
+        QvdSymbol sym = it->Symbols[idx];
+        switch (sym.Type) {
+        case 0x01:
+          printf("%d\n", sym.IntValue);
+          break;
+        case 0x02:
+          printf("%f\n", sym.DoubleValue);
+          break;
+        case 0x04:
+          printf("%s\n", sym.StringValue.c_str());
+          break;
+        case 0x05:
+          printf("%u (%s)\n", (unsigned int)sym.IntValue, sym.StringValue.c_str());
+          break;
+        case 0x06:
+          printf("%f (%s)\n", sym.DoubleValue, sym.StringValue.c_str());
+          break;
+        default:
+          printf("Unknown value\n");
+          break;
+        }
+      }
+
+    }
+  }
+  printf("  }\n");
+  printf("]\n");
   return true;
 }
 
@@ -244,6 +326,39 @@ char QvdFile::readByte()
   return c;
 }
 
+int QvdFile::get_bits_index(size_t nBits)
+{
+  int i = 0;
+
+  if (_bufLen == 0 && _bitsLeft == 0) {
+    if (!_eof) {
+      readBytes();
+      printf("Need to reload\n");
+    } else {
+      return 0; // throw an error.
+    }
+  }
+
+  while (nBits > _bitBufferSz) {
+    printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz);
+    _bitBuffer = _bitBuffer << 8;
+    _bitBufferSz += 8;
+    unsigned char byte = *_dataPtrStart++;
+    _bitBuffer += byte;
+    printf("Read byte 0x%02x\n", byte);
+
+    _bufLen--;
+  }
+
+  printf("%d\n", _bitBufferSz);
+  int mask = ((1 << nBits) - 1);
+  i = (_bitBuffer) & mask;
+  _bitBuffer = _bitBuffer >> nBits;
+  _bitBufferSz -= nBits;
+
+  return i;
+}
+
 //
 // Reads 32 bits in Little Endian format.
 //
@@ -251,10 +366,10 @@ int QvdFile::readInt32()
 {
   int c;
 
-  c = readByte();
-  c += readByte() << 8;
-  c += readByte() << 16;
-  c += readByte() << 24;
+  c = (unsigned char)readByte();
+  c += (unsigned char)readByte() << 8;
+  c += (unsigned char)readByte() << 16;
+  c += (unsigned char)readByte() << 24;
 
   return c;
 }
