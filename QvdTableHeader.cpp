@@ -16,8 +16,8 @@
 
 #include <cstring>
 
-#include <QvdTableHeader.h>
-#include <utils/conversions.h>
+#include "QvdTableHeader.h"
+#include "utils/conversions.h"
 
 void QvdTableHeader::ParseFields(const xmlNode *node)
 {

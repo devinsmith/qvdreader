@@ -22,8 +22,8 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-#include <QvdFile.h>
-#include <utils/dumphex.h>
+#include "QvdFile.h"
+#include "utils/dumphex.h"
 
 struct less_than_bitOffset {
   inline bool operator() (const QvdField &field1, const QvdField &field2)

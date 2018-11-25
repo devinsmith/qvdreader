@@ -21,9 +21,9 @@
 #include <string>
 #include <vector>
 
-#include <LineageInfo.h>
-#include <QvdField.h>
-#include <QvdTableHeader.h>
+#include "LineageInfo.h"
+#include "QvdField.h"
+#include "QvdTableHeader.h"
 
 class QvdFile {
 public:

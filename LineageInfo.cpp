@@ -16,7 +16,7 @@
 
 #include <cstring>
 
-#include <LineageInfo.h>
+#include "LineageInfo.h"
 
 void QvdLineageInfo::ParseXml(const xmlNode *node)
 {
@@ -42,4 +42,3 @@ void QvdLineageInfo::ParseXml(const xmlNode *node)
     }
   }
 }
-

@@ -17,7 +17,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <QvdFile.h>
+#include "QvdFile.h"
 
 int
 main(int argc, char *argv[])
@@ -36,4 +36,3 @@ main(int argc, char *argv[])
 
   return 0;
 }
-

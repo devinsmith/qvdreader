@@ -16,8 +16,8 @@
 
 #include <cstring>
 
-#include <QvdField.h>
-#include <utils/conversions.h>
+#include "QvdField.h"
+#include "utils/conversions.h"
 
 void QvdField::ParseNumberFormat(const xmlNode *node)
 {
@@ -90,4 +90,3 @@ void QvdField::ParseXml(const xmlNode *node)
     }
   }
 }
-

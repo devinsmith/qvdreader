@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <utils/conversions.h>
+#include "conversions.h"
 
 namespace utils {
 
@@ -45,5 +45,3 @@ int mem_to_int(const char *buf, size_t len)
 }
 
 } // end namespace utils
-
-

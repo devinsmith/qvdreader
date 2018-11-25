@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <utils/dumphex.h>
+#include "dumphex.h"
 
 void
 dump_hex(int lvl, void *vp, size_t len)
@@ -61,4 +61,3 @@ dump_hex(int lvl, void *vp, size_t len)
 	if (linebuf_dirty == 1)
 		fprintf(stderr, "%s\n", linebuf);
 }
-
