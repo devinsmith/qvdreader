@@ -45,7 +45,8 @@ struct QvdTableHeader {
 
   std::vector<QvdField> Fields;
   std::vector<QvdLineageInfo> Lineages;
+
+  std::vector<int> Indices;
 };
 
 #endif /* __QVD_TABLEHEADER_H__ */
-

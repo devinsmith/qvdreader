@@ -181,6 +181,7 @@ bool QvdFile::parseSymbolAndData()
         if (it->Bias != 0)
           idx += it->Bias;
         printf("> Index = %d\n", idx);
+        _hdr.Indices.push_back(idx);
         if (idx == -2) {
           printf("NULL\n");
           continue;
