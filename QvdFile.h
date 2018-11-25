@@ -34,6 +34,8 @@ public:
 
   size_t NumFields() { return _hdr.Fields.size(); }
 
+  QvdTableHeader GetTableHeader() { return _hdr; }
+
 private:
   bool parseXmlHeader(const char *filename);
   bool parseSymbolAndData();
@@ -62,4 +64,3 @@ private:
 };
 
 #endif /* __QVDFILE_H__ */
-
