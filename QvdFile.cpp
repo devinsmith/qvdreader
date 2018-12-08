@@ -324,7 +324,7 @@ int QvdFile::get_bits_index(size_t nBits)
 {
   int i = 0;
 
-  if (_bufLen == 0) {
+  if ((_bufLen == 0) && (nBits < _bitBufferSz)) {
     if (!_eof) {
       readBytes();
       printf("Need to reload\n");
