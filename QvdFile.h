@@ -17,6 +17,12 @@
 #ifndef __QVDFILE_H__
 #define __QVDFILE_H__
 
+#ifdef DEBUG_BUILD
+#define DEBUG(x) do { x } while (0)
+#else
+#define DEBUG(x)
+#endif
+
 #include <cstdio>
 #include <string>
 #include <vector>

@@ -66,7 +66,7 @@ bool QvdFile::Load(const char *filename)
     return false;
   }
 
-  fprintf(stdout, "%zu bytes left\n", _bufLen);
+  DEBUG(fprintf(stdout, "%zu bytes left\n", _bufLen););
 
   parseSymbolAndData();
 
@@ -82,7 +82,7 @@ bool QvdFile::Load(const char *filename)
   while (!_eof) {
     size_t len = readBytes();
 
-    printf("Read %zu bytes.\n", len);
+    DEBUG(printf("Read %zu bytes.\n", len););
   }
 
   fclose(_fp);
@@ -94,8 +94,8 @@ bool QvdFile::parseSymbolAndData()
 {
   for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
       it != _hdr.Fields.end(); ++it) {
-    printf("Parsing symbols for %s, need to read %d symbols\n",
-      it->FieldName.c_str(), it->NoOfSymbols);
+    DEBUG(printf("Parsing symbols for %s, need to read %d symbols\n",
+            it->FieldName.c_str(), it->NoOfSymbols););
 
     for (unsigned int i = 0; i < it->NoOfSymbols; i++) {
       unsigned char typeByte = static_cast<unsigned char>(readByte());
@@ -152,12 +152,12 @@ bool QvdFile::parseSymbolAndData()
   // Sort fields by BitOffset
   std::sort(_hdr.Fields.begin(), _hdr.Fields.end(), less_than_bitOffset());
 
-  printf("Total number of rows: %d\n", _hdr.NoOfRecords);
+  DEBUG(printf("Total number of rows: %d\n", _hdr.NoOfRecords););
   size_t rowNumber = 0;
 
-  printf("[\n");
-
-  printf("  {\n");
+  DEBUG(
+   printf("[\n");
+   printf("  {\n"););
 
   if (_bufLen == 0) {
     if (!_eof) {
@@ -166,34 +166,35 @@ bool QvdFile::parseSymbolAndData()
       return 0; // throw an error.
     }
   }
-  dump_hex(0, _dataPtrStart, _bufLen);
+  DEBUG(dump_hex(0, _dataPtrStart, _bufLen););
 
   for (rowNumber = 0; rowNumber < _hdr.NoOfRecords; rowNumber++) {
-    printf("==== ROW: %d ====\n", (int)rowNumber);
+    DEBUG(printf("==== ROW: %d ====\n", (int)rowNumber););
     // Read first row now;
     for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
         it != _hdr.Fields.end(); ++it) {
       if (it->BitWidth > 0) {
-        printf("Parsing data for %s (%d), need to read %d bits for this field\n",
-          it->FieldName.c_str(), it->BitOffset, it->BitWidth);
+        DEBUG(printf("Parsing data for %s (%d), need to read %d bits for this field\n",
+                     it->FieldName.c_str(), it->BitOffset, it->BitWidth););
 
         int idx = get_bits_index(it->BitWidth);
         if (it->Bias != 0)
           idx += it->Bias;
-        printf("> Index = %d\n", idx);
+        DEBUG(printf("> Index = %d\n", idx););
         _hdr.Indices.push_back(idx);
+        DEBUG(
         if (idx == -2) {
           printf("NULL\n");
           continue;
-        }
+        });
 
-
+        DEBUG(
         if (it->Symbols.size() == 0) {
           printf("NULL\n");
           continue;
-        }
+        });
 
-
+        DEBUG(
         QvdSymbol sym = it->Symbols[idx];
         switch (sym.Type) {
         case 0x01:
@@ -214,13 +215,14 @@ bool QvdFile::parseSymbolAndData()
         default:
           printf("Unknown value\n");
           break;
-        }
+        });
       }
 
     }
   }
+  DEBUG(
   printf("  }\n");
-  printf("]\n");
+  printf("]\n"););
   return true;
 }
 
@@ -327,16 +329,16 @@ int QvdFile::get_bits_index(size_t nBits)
   if ((_bufLen == 0) && (nBits < _bitBufferSz)) {
     if (!_eof) {
       readBytes();
-      printf("Need to reload\n");
+      DEBUG(printf("Need to reload\n"););
     } else {
       return 0; // throw an error.
     }
   }
 
   while (nBits > _bitBufferSz) {
-//    printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz);
+    //DEBUG(printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz););
     unsigned int byte = (unsigned char)*_dataPtrStart++;
-//    printf("Read byte 0x%02x\n", byte);
+    //DEBUG(printf("Read byte 0x%02x\n", byte););
     byte = byte << _bitBufferSz;
     _bitBufferSz += 8;
     _bitBuffer += byte;
@@ -344,7 +346,7 @@ int QvdFile::get_bits_index(size_t nBits)
     _bufLen--;
   }
 
-//  printf("%d\n", _bitBufferSz);
+  //DEBUG(printf("_bitBufferSz: %d\n", _bitBufferSz););
   int mask = ((1 << nBits) - 1);
   i = (_bitBuffer) & mask;
   _bitBuffer = _bitBuffer >> nBits;

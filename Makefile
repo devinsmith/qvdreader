@@ -15,7 +15,7 @@ CXX? = g++
 DEP_CFLAGS = $(shell pkg-config libxml-2.0 --cflags)
 DEP_LIBS = $(shell pkg-config libxml-2.0 --libs)
 
-CFLAGS = -Wall -O2 -fPIC
+CFLAGS = -Wall -O2 -fPIC # -DDEBUG_BUILD
 
 EXE = qvdreader
 SO = libqvdreader.so
