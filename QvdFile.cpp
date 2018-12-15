@@ -336,6 +336,7 @@ int QvdFile::get_bits_index(size_t nBits)
   }
 
   while (nBits > _bitBufferSz) {
+    readByte();
     //DEBUG(printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz););
     unsigned int byte = (unsigned char)*_dataPtrStart++;
     //DEBUG(printf("Read byte 0x%02x\n", byte););
