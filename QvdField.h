@@ -34,7 +34,7 @@ struct QvdField {
   std::string FieldName;
   unsigned int BitOffset;
   unsigned int BitWidth;
-  unsigned int Bias;
+  int Bias;
 
   // NumberFormat stuff
   std::string Type;
