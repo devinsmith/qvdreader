@@ -326,27 +326,14 @@ int QvdFile::get_bits_index(size_t nBits)
 {
   int i = 0;
 
-  if ((_bufLen == 0) && (nBits < _bitBufferSz)) {
-    if (!_eof) {
-      readBytes();
-      DEBUG(printf("Need to reload\n"););
-    } else {
-      return 0; // throw an error.
-    }
-  }
-
   while (nBits > _bitBufferSz) {
-    readByte();
+    unsigned int byte = (unsigned char)readByte();
     //DEBUG(printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz););
-    unsigned int byte = (unsigned char)*_dataPtrStart++;
     //DEBUG(printf("Read byte 0x%02x\n", byte););
     byte = byte << _bitBufferSz;
     _bitBufferSz += 8;
     _bitBuffer += byte;
-
-    _bufLen--;
   }
-
   //DEBUG(printf("_bitBufferSz: %d\n", _bitBufferSz););
   int mask = ((1 << nBits) - 1);
   i = (_bitBuffer) & mask;
