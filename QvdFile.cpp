@@ -350,6 +350,7 @@ int QvdFile::readInt32()
   c += (unsigned char)readByte() << 24;
 
   return c;
+}
 
 double QvdFile::readDouble()
 {
