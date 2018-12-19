@@ -50,6 +50,7 @@ private:
   char peekByte();
   char readByte();
   int readInt32();
+  double readDouble();
   int get_bits_index(size_t nBits);
   void advanceBytes(size_t nBytes);
 
