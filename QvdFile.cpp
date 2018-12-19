@@ -342,14 +342,10 @@ int QvdFile::get_bits_index(size_t nBits)
 //
 int QvdFile::readInt32()
 {
-  int c;
-
-  c = (unsigned char)readByte();
-  c += (unsigned char)readByte() << 8;
-  c += (unsigned char)readByte() << 16;
-  c += (unsigned char)readByte() << 24;
-
-  return c;
+  return static_cast<int>(static_cast<unsigned char>(readByte())       |
+                          static_cast<unsigned char>(readByte()) <<  8 |
+                          static_cast<unsigned char>(readByte()) << 16 |
+                          static_cast<unsigned char>(readByte()) << 24);
 }
 
 double QvdFile::readDouble()
