@@ -111,10 +111,7 @@ bool QvdFile::parseSymbolAndData()
         break;
       case 0x02: // NUMERIC (double 8 bytes)
         // XXX: Not endian safe.
-        memcpy(&d, _dataPtrStart, 8);
-        for (int i = 0; i < 8; i++) {
-          readByte();
-        }
+        d = readDouble();
         symbol.DoubleValue = d;
         break;
       case 0x04: // String value (0 terminated)
@@ -130,10 +127,7 @@ bool QvdFile::parseSymbolAndData()
         break;
       case 0x06: // DUAL (Double format) 8 bytes followed by string format.
         // XXX: Not endian safe.
-        memcpy(&d, _dataPtrStart, 8);
-        for (int i = 0; i < 8; i++) {
-          readByte();
-        }
+        d = readDouble();
         symbol.DoubleValue = d;
 
         // Read string.
@@ -356,6 +350,17 @@ int QvdFile::readInt32()
   c += (unsigned char)readByte() << 24;
 
   return c;
+
+double QvdFile::readDouble()
+{
+  double d;
+  unsigned char c[8];
+
+  for (int i=0; i<8; i++) {
+    c[i] = static_cast<unsigned char>(readByte());
+  }
+  d = *reinterpret_cast<double*>(c);
+  return d;
 }
 
 char QvdFile::peekByte()
