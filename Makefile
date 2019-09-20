@@ -15,14 +15,19 @@ CXX? = g++
 DEP_CFLAGS = $(shell pkg-config libxml-2.0 --cflags)
 DEP_LIBS = $(shell pkg-config libxml-2.0 --libs)
 
-CFLAGS = -Wall -O2 -I.
+CFLAGS = -Wall -O2 -fPIC # -DDEBUG_BUILD
 
 EXE = qvdreader
+SO = libqvdreader.so
 
-all: $(EXE)
+all: $(EXE) $(SO)
 
 $(EXE): $(OBJS)
 	$(CXX) $(CFLAGS) -o $(EXE) $(OBJS) $(DEP_LIBS)
+
+$(SO): $(OBJS)
+	$(CXX) -shared -Wl,-soname,$@ $(OBJS) -o $@  $(DEP_LIBS)
+#	$(CXX) -shared -Wl,-install_name,$@ $(OBJS) -o $@  $(DEP_LIBS)
 
 .cpp.o:
 	$(CXX) $(CFLAGS) $(DEP_CFLAGS) -MMD -MP -MT $@ -o $@ -c $<
@@ -31,6 +36,7 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 	$(RM) $(EXE)
+	$(RM) $(SO)
 
 # Include automatically generated dependency files
 -include $(wildcard *.d)

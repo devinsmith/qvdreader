@@ -17,13 +17,19 @@
 #ifndef __QVDFILE_H__
 #define __QVDFILE_H__
 
+#ifdef DEBUG_BUILD
+#define DEBUG(x) do { x } while (0)
+#else
+#define DEBUG(x)
+#endif
+
 #include <cstdio>
 #include <string>
 #include <vector>
 
-#include <LineageInfo.h>
-#include <QvdField.h>
-#include <QvdTableHeader.h>
+#include "LineageInfo.h"
+#include "QvdField.h"
+#include "QvdTableHeader.h"
 
 class QvdFile {
 public:
@@ -34,6 +40,8 @@ public:
 
   size_t NumFields() { return _hdr.Fields.size(); }
 
+  QvdTableHeader GetTableHeader() { return _hdr; }
+
 private:
   bool parseXmlHeader(const char *filename);
   bool parseSymbolAndData();
@@ -42,6 +50,7 @@ private:
   char peekByte();
   char readByte();
   int readInt32();
+  double readDouble();
   int get_bits_index(size_t nBits);
   void advanceBytes(size_t nBytes);
 
@@ -62,4 +71,3 @@ private:
 };
 
 #endif /* __QVDFILE_H__ */
-

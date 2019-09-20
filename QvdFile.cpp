@@ -22,8 +22,8 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-#include <QvdFile.h>
-#include <utils/dumphex.h>
+#include "QvdFile.h"
+#include "utils/dumphex.h"
 
 struct less_than_bitOffset {
   inline bool operator() (const QvdField &field1, const QvdField &field2)
@@ -66,7 +66,7 @@ bool QvdFile::Load(const char *filename)
     return false;
   }
 
-  fprintf(stdout, "%zu bytes left\n", _bufLen);
+  DEBUG(fprintf(stdout, "%zu bytes left\n", _bufLen););
 
   parseSymbolAndData();
 
@@ -82,7 +82,7 @@ bool QvdFile::Load(const char *filename)
   while (!_eof) {
     size_t len = readBytes();
 
-    printf("Read %zu bytes.\n", len);
+    DEBUG(printf("Read %zu bytes.\n", len););
   }
 
   fclose(_fp);
@@ -94,8 +94,8 @@ bool QvdFile::parseSymbolAndData()
 {
   for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
       it != _hdr.Fields.end(); ++it) {
-    printf("Parsing symbols for %s, need to read %d symbols\n",
-      it->FieldName.c_str(), it->NoOfSymbols);
+    DEBUG(printf("Parsing symbols for %s, need to read %d symbols\n",
+            it->FieldName.c_str(), it->NoOfSymbols););
 
     for (unsigned int i = 0; i < it->NoOfSymbols; i++) {
       unsigned char typeByte = static_cast<unsigned char>(readByte());
@@ -111,10 +111,7 @@ bool QvdFile::parseSymbolAndData()
         break;
       case 0x02: // NUMERIC (double 8 bytes)
         // XXX: Not endian safe.
-        memcpy(&d, _dataPtrStart, 8);
-        for (int i = 0; i < 8; i++) {
-          readByte();
-        }
+        d = readDouble();
         symbol.DoubleValue = d;
         break;
       case 0x04: // String value (0 terminated)
@@ -130,10 +127,7 @@ bool QvdFile::parseSymbolAndData()
         break;
       case 0x06: // DUAL (Double format) 8 bytes followed by string format.
         // XXX: Not endian safe.
-        memcpy(&d, _dataPtrStart, 8);
-        for (int i = 0; i < 8; i++) {
-          readByte();
-        }
+        d = readDouble();
         symbol.DoubleValue = d;
 
         // Read string.
@@ -152,12 +146,12 @@ bool QvdFile::parseSymbolAndData()
   // Sort fields by BitOffset
   std::sort(_hdr.Fields.begin(), _hdr.Fields.end(), less_than_bitOffset());
 
-  printf("Total number of rows: %d\n", _hdr.NoOfRecords);
+  DEBUG(printf("Total number of rows: %d\n", _hdr.NoOfRecords););
   size_t rowNumber = 0;
 
-  printf("[\n");
-
-  printf("  {\n");
+  DEBUG(
+   printf("[\n");
+   printf("  {\n"););
 
   if (_bufLen == 0) {
     if (!_eof) {
@@ -166,33 +160,35 @@ bool QvdFile::parseSymbolAndData()
       return 0; // throw an error.
     }
   }
-  dump_hex(0, _dataPtrStart, _bufLen);
+  DEBUG(dump_hex(0, _dataPtrStart, _bufLen););
 
   for (rowNumber = 0; rowNumber < _hdr.NoOfRecords; rowNumber++) {
-    printf("==== ROW: %d ====\n", (int)rowNumber);
+    DEBUG(printf("==== ROW: %d ====\n", (int)rowNumber););
     // Read first row now;
     for (std::vector<QvdField>::iterator it = _hdr.Fields.begin();
         it != _hdr.Fields.end(); ++it) {
       if (it->BitWidth > 0) {
-        printf("Parsing data for %s (%d), need to read %d bits for this field\n",
-          it->FieldName.c_str(), it->BitOffset, it->BitWidth);
+        DEBUG(printf("Parsing data for %s (%d), need to read %d bits for this field\n",
+                     it->FieldName.c_str(), it->BitOffset, it->BitWidth););
 
         int idx = get_bits_index(it->BitWidth);
         if (it->Bias != 0)
           idx += it->Bias;
-        printf("> Index = %d\n", idx);
+        DEBUG(printf("> Index = %d\n", idx););
+        _hdr.Indices.push_back(idx);
+        DEBUG(
         if (idx == -2) {
           printf("NULL\n");
           continue;
-        }
+        });
 
-
+        DEBUG(
         if (it->Symbols.size() == 0) {
           printf("NULL\n");
           continue;
-        }
+        });
 
-
+        DEBUG(
         QvdSymbol sym = it->Symbols[idx];
         switch (sym.Type) {
         case 0x01:
@@ -213,13 +209,14 @@ bool QvdFile::parseSymbolAndData()
         default:
           printf("Unknown value\n");
           break;
-        }
+        });
       }
 
     }
   }
+  DEBUG(
   printf("  }\n");
-  printf("]\n");
+  printf("]\n"););
   return true;
 }
 
@@ -323,27 +320,15 @@ int QvdFile::get_bits_index(size_t nBits)
 {
   int i = 0;
 
-  if (_bufLen == 0) {
-    if (!_eof) {
-      readBytes();
-      printf("Need to reload\n");
-    } else {
-      return 0; // throw an error.
-    }
-  }
-
   while (nBits > _bitBufferSz) {
-//    printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz);
-    unsigned int byte = (unsigned char)*_dataPtrStart++;
-//    printf("Read byte 0x%02x\n", byte);
+    unsigned int byte = (unsigned char)readByte();
+    //DEBUG(printf("Requesting %zu bits, but only have %d bits\n", nBits, _bitBufferSz););
+    //DEBUG(printf("Read byte 0x%02x\n", byte););
     byte = byte << _bitBufferSz;
     _bitBufferSz += 8;
     _bitBuffer += byte;
-
-    _bufLen--;
   }
-
-//  printf("%d\n", _bitBufferSz);
+  //DEBUG(printf("_bitBufferSz: %d\n", _bitBufferSz););
   int mask = ((1 << nBits) - 1);
   i = (_bitBuffer) & mask;
   _bitBuffer = _bitBuffer >> nBits;
@@ -357,14 +342,22 @@ int QvdFile::get_bits_index(size_t nBits)
 //
 int QvdFile::readInt32()
 {
-  int c;
+  return static_cast<int>(static_cast<unsigned char>(readByte())       |
+                          static_cast<unsigned char>(readByte()) <<  8 |
+                          static_cast<unsigned char>(readByte()) << 16 |
+                          static_cast<unsigned char>(readByte()) << 24);
+}
 
-  c = (unsigned char)readByte();
-  c += (unsigned char)readByte() << 8;
-  c += (unsigned char)readByte() << 16;
-  c += (unsigned char)readByte() << 24;
+double QvdFile::readDouble()
+{
+  double d;
+  unsigned char c[8];
 
-  return c;
+  for (int i=0; i<8; i++) {
+    c[i] = static_cast<unsigned char>(readByte());
+  }
+  d = *reinterpret_cast<double*>(c);
+  return d;
 }
 
 char QvdFile::peekByte()

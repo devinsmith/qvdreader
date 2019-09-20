@@ -22,8 +22,8 @@
 
 #include <libxml/tree.h>
 
-#include <LineageInfo.h>
-#include <QvdField.h>
+#include "LineageInfo.h"
+#include "QvdField.h"
 
 struct QvdTableHeader {
   QvdTableHeader() : SourceFileSize(0), RecordByteSize(0), NoOfRecords(0),
@@ -45,7 +45,8 @@ struct QvdTableHeader {
 
   std::vector<QvdField> Fields;
   std::vector<QvdLineageInfo> Lineages;
+
+  std::vector<int> Indices;
 };
 
 #endif /* __QVD_TABLEHEADER_H__ */
-

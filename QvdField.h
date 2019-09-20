@@ -22,10 +22,10 @@
 
 #include <libxml/tree.h>
 
-#include <QvdSymbol.h>
+#include "QvdSymbol.h"
 
 struct QvdField {
-  QvdField() : BitOffset(0), BitWidth(0), Bias(0), nDec(0), UseThou(0), 
+  QvdField() : BitOffset(0), BitWidth(0), Bias(0), nDec(0), UseThou(0),
     NoOfSymbols(0), Offset(0), Length(0) { }
 
   void ParseNumberFormat(const xmlNode *node);
@@ -34,7 +34,7 @@ struct QvdField {
   std::string FieldName;
   unsigned int BitOffset;
   unsigned int BitWidth;
-  unsigned int Bias;
+  int Bias;
 
   // NumberFormat stuff
   std::string Type;
@@ -51,4 +51,3 @@ struct QvdField {
 };
 
 #endif /* __QVD_FIELD_H__ */
-
